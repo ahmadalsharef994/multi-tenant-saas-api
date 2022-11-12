@@ -13,6 +13,4 @@ const connect = async (url) => {
     })
 };
 
-module.exports = {
-    connect
-}
+module.exports = connect;

@@ -1,25 +1,29 @@
-const { connect } = require('./db-connection');
+const { connect } = require('./mongoDB-connection');
 const mongoose = require('mongoose');
-const url = "mongodb+srv://user:pwd@wedlock-cluster.da3ng.mongodb.net";
-let db;
-const customerSchema = new mongoose.Schema({
+
+const organizationSchema = new mongoose.Schema({
     customerName: String
 }, { timestamps: true })
 
-const customerModel = mongoose.model("customers", customerSchema)
+const Organization = mongoose.model("Organization", organizationSchema)
+
+
+const url = process.env.MONGODB_URL; // URL of root DB to store each Tenant
+let mongoDB;
 
 const getTenantDB = async (tenantId) => {
-    const dbName = `tenant-${tenantId}`;
-    db = db ? db : await connect(url)
-    let tenantDb = db.useDb(dbName, { useCache: true });
+    const dbName = `tenant-${tenantId}`; // orgId
+    mongoDB = mongoDB ? mongoDB : await connect(url)
+    let tenantDb = mongoDB.useDb(dbName, { useCache: true });
     return tenantDb;
 }
 
-const getCustomerModel = async (tenantId) => {
+const getOrganizationModel = async (tenantId) => {
+    // how to do this which each model
     const tenantDb = await getTenantDB(tenantId);
-    return tenantDb.model("customers", customerSchema)
+    return tenantDb.model("Organization", organizationSchema)
 }
 
 module.exports = {
-    getCustomerModel
+    getOrganizationModel
 }
