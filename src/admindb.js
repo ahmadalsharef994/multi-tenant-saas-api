@@ -9,7 +9,7 @@ const tenantSchema = new mongoose.Schema({
 const Tenant = mongoose.model("Tenant", tenantSchema);
 
 let mongoDB;
-const url = "mongodb+srv://admin:admin@cluster0.knadi.mongodb.net/admindb"; // URL of DB to store tenant details
+const url = process.env.MONGODB_URL; // URL of DB to store tenant details
 
 const getDb = async () => {
     return mongoDB ? mongoDB : await connect(url)
