@@ -267,19 +267,11 @@ docker run -p 3000:3000 multi-tenant-api
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- [Express.js](https://expressjs.com/) for the web framework
-- [MongoDB](https://www.mongodb.com/) for the database
-- [Mongoose](https://mongoosejs.com/) for MongoDB object modeling
-- [JWT](https://jwt.io/) for authentication tokens
-
 ## 📞 Support
 
 For support and questions:
-- 📧 Email: your-email@example.com
 - 🐛 Issues: [GitHub Issues](https://github.com/ahmadalsharef994/multi-tenant-saas-api/issues)
-- 📖 Documentation: [Wiki](https://github.com/ahmadalsharef994/multi-tenant-saas-api/wiki)
+
 
 ---
 
