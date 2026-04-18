@@ -1,13 +1,12 @@
 # 🏢 Multi-Tenant SaaS API
 
 <p align="center">
-  <img src="https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen?logo=node.js" alt="Node.js">
-  <img src="https://img.shields.io/badge/express-4.x-blue?logo=express" alt="Express">
-  <img src="https://img.shields.io/badge/mongodb-mongoose-green?logo=mongodb" alt="MongoDB">
-  <img src="https://img.shields.io/badge/auth-JWT-orange" alt="JWT">
-  <img src="https://img.shields.io/badge/cache-Redis-red?logo=redis" alt="Redis">
+  <img src="https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen?logo=node.js" alt="Node.js">
+  <img src="https://img.shields.io/badge/express-5.x-blue?logo=express" alt="Express">
+  <img src="https://img.shields.io/badge/mongoose-8.x-green?logo=mongodb" alt="MongoDB">
   <img src="https://img.shields.io/badge/docker-ready-blue?logo=docker" alt="Docker">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
+  <img src="https://github.com/ahmadalsharef994/multi-tenant-saas-api/actions/workflows/ci.yml/badge.svg" alt="CI">
 </p>
 
 A production-ready **multi-tenant SaaS API** built with Node.js, Express, and MongoDB. Each tenant gets a fully isolated database, scoped roles and permissions, and their own configuration — zero data leakage between tenants.
@@ -195,6 +194,64 @@ docker run -p 3000:3000 multi-tenant-api
 
 ---
 
-## 📄 License
+## � How Tenant Isolation Works
+
+Every tenant maps to a **dedicated MongoDB database** — there is zero shared collection between tenants.
+
+```mermaid
+flowchart LR
+    API["Express API"] --> Router["Tenant Router"]
+    Router -->|"tenantId=acme"| DBA[("mongodb / tenant-acme")]
+    Router -->|"tenantId=globex"| DBB[("mongodb / tenant-globex")]
+    Router -->|"tenantId=initech"| DBC[("mongodb / tenant-initech")]
+```
+
+The key is in `src/tenantdb.js`:
+
+```js
+const dbName = `tenant-${tenantId}`;
+let tenantDb = mongoDB.useDb(dbName, { useCache: true });
+```
+
+Mongoose's `useDb()` switches the connection to a different database on the fly. Every subsequent query runs against that tenant's isolated database — no `WHERE tenant_id = ?` clauses, no shared schemas, no risk of data bleed.
+
+---
+
+## 🧪 Try It With curl
+
+> Requires: `docker compose up` running (see Quick Start above)
+
+```bash
+# 1. Register tenant "acme"
+curl "http://localhost:3000/tenant?tenantId=acme"
+# → {"id":"acme","name":"acme"}
+
+# 2. Register tenant "globex"
+curl "http://localhost:3000/tenant?tenantId=globex"
+# → {"id":"globex","name":"globex"}
+
+# 3. List all registered tenants
+curl "http://localhost:3000/tenants"
+# → [{"id":"acme","name":"acme"},{"id":"globex","name":"globex"}]
+
+# 4. Add customers to "acme" — stored in mongodb/tenant-acme ONLY
+curl "http://localhost:3000/customer?tenantId=acme&customer=alice"
+curl "http://localhost:3000/customer?tenantId=acme&customer=bob"
+
+# 5. Add a customer to "globex" — stored in mongodb/tenant-globex ONLY
+curl "http://localhost:3000/customer?tenantId=globex&customer=carol"
+
+# 6. List customers for "acme" — returns ONLY acme's customers
+curl "http://localhost:3000/customer?tenantId=acme"
+# → [{"customerName":"alice"},{"customerName":"bob"}]
+
+# 7. List customers for "globex" — completely isolated
+curl "http://localhost:3000/customer?tenantId=globex"
+# → [{"customerName":"carol"}]
+```
+
+---
+
+## �📄 License
 
 MIT — Built for enterprise-grade multi-tenant applications 🏢

@@ -27,20 +27,27 @@ app.get('/customer', async (req, res) => {
     let Tenant = await getTenantModel();
     let tenant = await Tenant.findOne({ id: tenantId })
     if (!tenant)
-        res.sendStatus(404) // tenant not found. Register tenant
+        return res.sendStatus(404) // tenant not found. Register tenant
+
     let Organization = await getOrganizationModel(tenantId);
-    const customer = new Organization({ customerName });
-    let doc = await Organization.findOneAndUpdate({ customerName }, { customerName });
-    if (!doc) {
-        customer.save(function (err) {
-            // if (err) return handleError(err);
-            // saved!
-        });
+
+    // List all customers for a tenant when no customer name is given
+    if (!customerName) {
+        const customers = await Organization.find({});
+        return res.json(customers);
     }
 
-    res.send(JSON.stringify(customer))
+    const customer = new Organization({ customerName });
+    let doc = await Organization.findOneAndUpdate({ customerName }, { customerName }, { upsert: true, new: true });
+    res.json(doc)
 })
 
+// List all registered tenants
+app.get('/tenants', async (req, res) => {
+    let Tenant = await getTenantModel();
+    const tenants = await Tenant.find({});
+    res.json(tenants);
+})
 
 app.listen(port, () => {
     console.log(`listening ${port}`)
